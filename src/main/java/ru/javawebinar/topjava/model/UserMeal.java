@@ -1,6 +1,9 @@
 package ru.javawebinar.topjava.model;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.List;
 
 public class UserMeal {
     private final LocalDateTime dateTime;
@@ -18,6 +21,10 @@ public class UserMeal {
     public LocalDateTime getDateTime() {
         return dateTime;
     }
+    //самодельный
+    public LocalDate getLocalDate(){
+        return dateTime.toLocalDate();
+    }
 
     public String getDescription() {
         return description;
@@ -34,5 +41,10 @@ public class UserMeal {
                 ", description='" + description + '\'' +
                 ", calories=" + calories +
                 '}';
+    }
+
+    public boolean isInList(List<LocalDate> collection) {
+        UserMeal key=this;
+       return collection.stream().anyMatch(x -> x == key.getDateTime().toLocalDate());
     }
 }
