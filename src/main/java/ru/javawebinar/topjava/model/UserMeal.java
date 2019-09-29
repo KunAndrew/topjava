@@ -2,7 +2,6 @@ package ru.javawebinar.topjava.model;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 
 public class UserMeal {
@@ -20,10 +19,6 @@ public class UserMeal {
 
     public LocalDateTime getDateTime() {
         return dateTime;
-    }
-    //самодельный
-    public LocalDate getLocalDate(){
-        return dateTime.toLocalDate();
     }
 
     public String getDescription() {
@@ -43,8 +38,13 @@ public class UserMeal {
                 '}';
     }
 
+    public LocalDate getLocalDate() {
+        return dateTime.toLocalDate();
+    }
+
+    //return true if the condition is satisfied for at least one element
     public boolean isInList(List<LocalDate> collection) {
-        UserMeal key=this;
-       return collection.stream().anyMatch(x -> x == key.getDateTime().toLocalDate());
+        UserMeal key = this;
+        return collection.stream().anyMatch(x -> x == key.getDateTime().toLocalDate());
     }
 }
