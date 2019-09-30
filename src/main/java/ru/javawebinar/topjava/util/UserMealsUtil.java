@@ -29,39 +29,35 @@ public class UserMealsUtil {
     }
 
     public static List<UserMealWithExceed> getFilteredWithExceeded(List<UserMeal> mealList, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
-        List<UserMeal> mealsWithTimeFilter = new LinkedList<>();
-        List<UserMealWithExceed> mealsWithBothFilters = new LinkedList<>();
-        HashMap<LocalDate, Integer> tempMap = new HashMap<>();
+        HashMap<LocalDate, Integer> caloriesInDay = new HashMap<>();
         for (UserMeal meal : mealList) {
-            //Map match LocalDate to the calories in this day
-            tempMap.merge(meal.getDateTime().toLocalDate(), meal.getCalories(), (oldVal, newVal) -> oldVal + newVal);
-            if (meal.getDateTime().toLocalTime().isBefore(endTime) & startTime.isBefore(meal.getDateTime().toLocalTime())) {
-                mealsWithTimeFilter.add(meal);
-            }
+            caloriesInDay.merge(meal.getDateTime().toLocalDate(), meal.getCalories(), Integer::sum);
         }
-        //Check UserMeals calories
-        for (UserMeal meal : mealsWithTimeFilter) {
-            if (tempMap.get(meal.getDateTime().toLocalDate()) > caloriesPerDay) {
-                mealsWithBothFilters.add(new UserMealWithExceed(meal.getDateTime(), meal.getDescription(), meal.getCalories(), true));
-                System.out.println(meal.getDescription() + " " + meal.getDateTime().toLocalDate() + " " + meal.getDateTime().toLocalTime());
+
+        List<UserMealWithExceed> mealsWithBothFilters = new LinkedList<>();
+        for (UserMeal meal : mealList) {
+            if (TimeUtil.isBetween(meal.getDateTime().toLocalTime(), startTime, endTime)) {
+                mealsWithBothFilters.add(new UserMealWithExceed(meal.getDateTime(), meal.getDescription(), meal.getCalories(),
+                        caloriesInDay.get(meal.getDateTime().toLocalDate()) > caloriesPerDay));
             }
         }
         return mealsWithBothFilters;
     }
 
     public static List<UserMealWithExceed> getFilteredWithExceededStream(List<UserMeal> mealList, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
-        return mealList.stream()
-                .filter(s -> s.getDateTime().toLocalTime().isBefore(endTime) & startTime.isBefore(s.getDateTime().toLocalTime())    // time filters part
-                                & s.isInList(                                                                                       //calories filters part
-                        mealList.stream()                                //stream return List<LocalDate> where calories more then caloriesPerDay
-                                .collect(Collectors.groupingBy(UserMeal::getLocalDate,
-                                        Collectors.summingInt(UserMeal::getCalories))).entrySet().stream()
-                                                .filter(i -> i.getValue() > caloriesPerDay)
-                                                .map(i -> i.getKey())
-                                                .collect(Collectors.toList())
-                        )
-                )
-                .map(i -> new UserMealWithExceed(i.getDateTime(), i.getDescription(), i.getCalories(), true))
+        final List daysWithMoreCalories = mealList.stream()          //stream return List<LocalDate> where calories more then caloriesPerDay
+                .collect(Collectors.groupingBy(UserMeal::getLocalDate,
+                        Collectors.summingInt(UserMeal::getCalories))).entrySet().stream()
+                .filter(umc -> umc.getValue() > caloriesPerDay)
+                .map(umc -> umc.getKey())
                 .collect(Collectors.toList());
+
+        List list = mealList.stream()
+                .filter(um -> TimeUtil.isBetween(um.getDateTime().toLocalTime(), startTime, endTime))
+                .map(um -> {
+                    return new UserMealWithExceed(um.getDateTime(), um.getDescription(), um.getCalories(),
+                            daysWithMoreCalories.contains(um.getDateTime().toLocalDate()));})
+                .collect(Collectors.toList());
+        return list;
     }
 }

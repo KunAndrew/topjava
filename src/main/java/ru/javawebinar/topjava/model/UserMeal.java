@@ -41,10 +41,4 @@ public class UserMeal {
     public LocalDate getLocalDate() {
         return dateTime.toLocalDate();
     }
-
-    //return true if the condition is satisfied for at least one element
-    public boolean isInList(List<LocalDate> collection) {
-        UserMeal key = this;
-        return collection.stream().anyMatch(x -> x == key.getDateTime().toLocalDate());
-    }
 }
