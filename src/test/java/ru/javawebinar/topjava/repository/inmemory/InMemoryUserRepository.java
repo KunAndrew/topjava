@@ -20,6 +20,7 @@ public class InMemoryUserRepository extends InMemoryBaseRepository<User> impleme
         map.clear();
         map.put(UserTestData.USER_ID, USER);
         map.put(UserTestData.ADMIN_ID, ADMIN);
+        map.put(UserTestData.USER_ID2, USER);
     }
 
     @Override
